@@ -16,14 +16,14 @@ A web-based application for creating and editing JSON family tree data that can 
 
 ### Open the Editor
 
-Simply open `editor.html` in your web browser:
+Simply open `FamilyTreeEditor.html` in your web browser:
 ```
 Double-click editor.html
 ```
 
 Or:
 ```
-Right-click editor.html → Open with → Your favorite browser
+Right-click FamilyTreeEditor.html → Open with → Your favorite browser
 ```
 
 ## How to Use
@@ -32,10 +32,7 @@ Right-click editor.html → Open with → Your favorite browser
 
 1. Fill in the form fields:
    - **Name**: The person's full name
-   - **Title**: Their relationship/role (e.g., "Father", "Daughter", "Son-in-Law")
-   - **Gender**: Select male, female, or other
-   - **Parent ID** (optional): The ID of their parent
-   - **Outsider** (optional): Check this if they married into the family
+   - **Relationship**: Their relationship/role (e.g., "Father", "Daughter", "Son-in-Law")
 
 2. Click **"Add Member"** button
 3. The member appears in the "Family Members" list
