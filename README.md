@@ -85,26 +85,28 @@ The family tree data is stored as a JSON array of member objects:
 
 ```json
 [
-  {
-    "id": "1",
-    "name": "John Doe",
-    "title": "Father",
-    "gender": "male"
-  },
-  {
-    "id": "2",
-    "name": "Jane Doe",
-    "title": "Mother",
-    "gender": "female",
-    "outsider": true
-  },
-  {
-    "id": "3",
-    "name": "Tom Doe",
-    "title": "Son",
-    "gender": "male",
-    "parentId": "1"
-  }
+  [
+    {
+      "id": "1",
+      "name": "Father Doe",
+      "relationship": "Father"
+      children: [
+          [
+            {
+              "id": "3",
+              "name": "Tom Doe",
+              "relationship": "Son"
+            }
+          ]
+        ]
+    },
+    {
+      "id": "2",
+      "name": "Mother Doe",
+      "relationship": "Mother"
+      "outsider": true
+    }
+
 ]
 ```
 
@@ -112,7 +114,7 @@ The family tree data is stored as a JSON array of member objects:
 
 - **id**: Unique identifier (auto-generated, but you can set custom ones)
 - **name**: Person's full name
-- **title**: Their relation/role in the family tree
+- **relationship**: Their relation/role in the family tree
 - **gender**: "male", "female", or "other"
 - **parentId** (optional): The ID of their parent
 - **outsider** (optional): Set to `true` if they married into the family
