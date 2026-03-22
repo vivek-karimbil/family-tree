@@ -356,35 +356,26 @@
             var $firstLevelNodes = $('.orgchart > ul > li > .node');
             var concatenatedResults = [];
             $firstLevelNodes.each(function() {
-                concatenatedResults.push(getFullTreeData($(this)));
+                concatenatedResults.push(getFullTreeData(this));
             });
             return concatenatedResults;
         }
-
-        var nodeData = Object.assign({}, $node.data('nodeData'));
-        delete nodeData.parentId;
-        if (!nodeData.outsider) {
-            var $childrenList = $node.siblings('ul.nodes');
-            
-            if ($childrenList.length > 0) {
-                nodeData.children = [];
-                
-                $childrenList.children('li.hierarchy').each(function() {
-                    var $childBranchNodes = $(this).children('.node');
-                    var branchArray = [];
-
-                    $childBranchNodes.each(function() {
-                        branchArray.push(getFullTreeData($(this)));
-                    });
-
-                    nodeData.children.push(branchArray);
-                });
-            }
-        } else {
-            // Ensure outsiders don't carry a children key from previous data states
-            delete nodeData.children;
+        var nodeData = { // initialise return value
+            'id': $node.id,
+            'name': $node.querySelector('.title').innerText,
+            'relationship': $node.querySelector('.content').innerText
         }
-
+        if ($node.classList.contains('outsider')) { // If outsider
+            nodeData.outsider = true;
+            return nodeData;
+        }
+        if ($($node).parent().find('ul > li > div.node').length) { // if children
+          nodeData.children = [];
+          $($node).parent().find('ul > li > div.node').each(function() {
+                nodeData.children.push([getFullTreeData(this)]);
+          });
+          return nodeData;
+        }
         return nodeData;
     }
 
@@ -466,7 +457,8 @@
         return;
       }
       if (nodeType.val() === 'parent') { // Topmost parent option was selected
-        if (!$chartContainer.children('.orgchart').length) { // if the chart is empty, create first parent node
+        if (!$chartContainer.children('.orgchart').length
+          || !$chartContainer.children('.orgchart').children('nodes').length) { // if the chart is empty, create first parent node
           oc = $chartContainer.orgchart({
             'data' : { 'name': relatives[0][0], 'relationship': relatives[0][1], 'id': getId() },
             'chartClass': 'edit-state',
@@ -490,7 +482,7 @@
         var newSpouseHtml = `<div id="${spouse[0].id}" class="node outsider">`
           + nodeTemplate(spouse[0])
           + '</div>';
-        li.append(newSpouseHtml);
+        $node.after(newSpouseHtml);
       } else { // (multiple) children option was selected
         if (!$node.siblings('.nodes').length) { // if no children yet
           $node.parent('li').append('<ul class="nodes"></ul>');
@@ -504,9 +496,18 @@
             li.append(newSpouseHtml);
           });
         } else { // not first child, add siblings instead
-          oc.addSiblings($node.siblings('.nodes').find('.node:first'), relatives.map(function (item) {
+          var ul = $node.parent().children('ul.nodes');
+          relatives.forEach(relative => {
+            ul.append('<li class="hierarchy"></li>');
+            li = ul.find('li:last-child()');
+            newSpouseHtml = `<div id="${getId()}" class="node">`
+              + nodeTemplate({ 'name': relative[0], 'relationship': relative[1] })
+              + '</div>';
+            li.append(newSpouseHtml);
+          });
+/*          oc.addSiblings($node.siblings('.nodes').find('.node:first'), relatives.map(function (item) {
               return { 'name': item[0], 'relationship': item[1], 'id': getId() };
-            }));
+            })); */
         }
       }
       saveFamilyTree([getFullTreeData()]);
