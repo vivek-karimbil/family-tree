@@ -1,825 +1,1042 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Family Tree V2</title>
-  <link rel="icon" href="img/logo.png">
-  <link rel="stylesheet" href="css/jquery.orgchart.css">
-  <link rel="stylesheet" href="css/style.css">
-  <style type="text/css">
-    :root { --bgcolor: #e5e3e3; }
-    #chart-container {
-        min-height: 90vh !important; 
-        height: auto !important; 
-        width: 100% !important;
-        overflow: visible !important; 
-        display: block !important;
-        background-color: var(--bgcolor);
-    }
-    .orgchart {
-        display: inline-block; 
-        min-width: 100%;
-        /* Add significant bottom padding so the edit panel doesn't cover leaf nodes */
-        padding-bottom: 150px !important; 
-    }
-    /* Ensure the parent wrappers don't squash the container */
-    html, body {
-        height: auto;
-        min-height: 100%;
-        background-color: var(--bgcolor);
-    }
-    
-    .orgchart { background-image: none;}
-    .orgchart.edit-state .edge { display: none; }
-    #chart-container { height: calc(100% - 20px); display: flex; }
-    .orgchart .node { padding: 0px 8px; position: relative; } /* Offset child nodes so lines connect */
+    <meta charset="utf-8">
+    <title>Family Tree V2</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎸</text></svg>">
+    <link rel="stylesheet" href="css/jquery.orgchart.css">
+    <style type="text/css">
+        :root { --bgcolor: #7f8a7a; }
+        /* Ensure the parent wrappers don't squash the container */
+        html, body {
+            background-color: var(--bgcolor);
+            box-sizing: border-box;
+            height: 100%;
+            margin: 0;
+            min-height: 100%;
+            padding: 1px;
+        }
 
-    /* Name BG color for Outsiders */
-    .orgchart .node.outsider .title { background-color: #77f; }
-    .orgchart .node .content { height: 40px; }
+        #chart-container {
+            background-color: var(--bgcolor);
+            display: block;
+            height: calc(100% - 20px);
+            min-height: 90vh !important;
+            overflow: visible !important; 
+            position: relative;
+            text-align: center; /* Keeps the chart centered horizontally */
+            width: 100% !important;
+        }
 
-    .orgchart .couple:has(> .nodes) > .node:first-child::after { height: 46px; } /* Vertical line from parents to children: correct height */
-    .orgchart > ul > li > ul li > .node:not(.outsider)::before { height: var(--height, 12px); } /* Vertical line from lowest line down of parent to top of child */
-    .orgchart > ul > li > ul li .node.outsider::before { border-right: unset; } /* Remove vertical line for outsiders */
-    /* First child is the 2nd person of couple - eg. Uma */
-    .orgchart .couple:first-child:not(:only-child):has(> div.outsider + div)::before {
-      left: calc(50% + 74px) !important;
-      width: calc(50% - 74px) !important;
-    }
-    /* First child is the 2nd person of couple  */
-    .orgchart .couple:first-child:not(:only-child):has(> div + div.outsider)::before {
-      left: calc(50% - 74px) !important;
-      width: calc(50% + 74px) !important;
-    }
-    /* Last child is the 2nd person of couple (like Seema) */
-    .orgchart .couple:last-child:not(:only-child):has(> div.outsider + div)::before {
-      width: calc(50% + 75px) !important;
-    }
-    /* Last child is the 1st person of couple (like Vivan) */
-    .orgchart .couple:last-child:not(:only-child):has(> div + div.outsider)::before {
-      width: calc(50% - 74px) !important;
-    }
-    /* if only child of last child is married - eg. Prajwal */
-    .orgchart .hierarchy.couple:only-child:has(> div + div.outsider)::before {
-      left: calc(50% - 75px) !important;
-      width: 75px !important;
-    }
-    .orgchart .hierarchy.couple:only-child:has(> div.outsider + div)::before { 
-      left: 50%;
-      width: 75px !important;
-    }
-    .orgchart .hierarchy:not(.couple) > .node:has(+ .nodes)::after {
-      height: 13px;
-    }
-    .orgchart .node .content .dob {
-        min-height: 1.2em; /* Ensure it takes up space even when empty */
-        display: block;    /* Ensure it behaves as a block within the content flow */
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-    }
-</style>
-  <style pd="nonchart" type="text/css">
-    .message {
-      position: fixed;      /* Float over content */
-      top: 33%;            /* Position at the top */
-      left: 50%;            /* Center horizontally */
-      transform: translateX(-50%); 
-      padding: 15px 25px;
-      border-radius: 8px;
-      z-index: 1000;        /* Ensure it's above the chart */
-      display: none;        /* Hidden by default */
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      min-width: 300px;
-      text-align: center;
-      font-family: sans-serif;
-    }
-    .message.success {
-      background: #c8e6c9;
-      color: #1b5e20;
-      border: 1px solid #2e7d32;
-      display: block;       /* Shows when class is added */
-    }
-    .message.error {
-      background: #ffcdd2;
-      color: #b71c1c;
-      border: 1px solid #c62828;
-      display: block;
-    }
-    .message.info {
-      background: #bbdefb;
-      color: #0d47a1;
-      border: 1px solid #1565c0;
-      display: block;
-    }
+        .orgchart {
+            background-color: var(--bgcolor);
+            background-image: none; /* Remove default checkered background */
+            display: inline-block;
+            min-width: 100%;
+            padding-bottom: 100px; 
+        }
+        .orgchart .node { padding: 0px 8px; position: relative; }     /* Offset child nodes so lines connect */        
+        .orgchart .node.outsider .title { background-color: #77f; } /* BG color for Outsiders */
+        .orgchart .node .content { height: 40px; }
+        .orgchart .couple:has(> .nodes) > .node:first-child::after { height: 46px; } /* Vertical line from parents to children: correct height */
+        .orgchart > ul > li > ul li > .node:not(.outsider)::before { height: var(--height, 12px); } /* Vertical line from lowest line down of parent to top of child */
+        .orgchart > ul > li > ul li .node.outsider::before { border-right: unset; } /* Remove vertical line for outsiders */
+        /* When First child is the 2nd person of couple */
+        .orgchart .couple:first-child:not(:only-child):has(> div.outsider + div)::before {
+          left: calc(50% + 74px) !important;
+          width: calc(50% - 74px) !important;
+        }
 
-    /* Ensure the overlay covers the full screen and centers content */
-    #read-link.modal-overlay,
-    #fileModal.modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background-color: rgba(0, 0, 0, 0.5); /* Dim the background */
-        display: none;    /* Controlled by JS .css('display', 'flex') */
-        justify-content: center;
-        align-items: center;
-        z-index: 2000;    /* Higher than edit-panel */
-    }
+        /* First child is the 2nd person of couple  */
+        .orgchart .couple:first-child:not(:only-child):has(> div + div.outsider)::before {
+          left: calc(50% - 74px) !important;
+          width: calc(50% + 74px) !important;
+        }
+        /* Last child is the 2nd person of couple */
+        .orgchart .couple:last-child:not(:only-child):has(> div.outsider + div)::before {
+          width: calc(50% + 75px) !important;
+        }
+        /* Last child is the 1st person of couple */
+        .orgchart .couple:last-child:not(:only-child):has(> div + div.outsider)::before {
+          width: calc(50% - 74px) !important;
+        }
+        /* if only child of last child is married */
+        .orgchart .hierarchy.couple:only-child:has(> div + div.outsider)::before {
+          left: calc(50% - 75px) !important;
+          width: 75px !important;
+        }
+        .orgchart .hierarchy.couple:only-child:has(> div.outsider + div)::before { 
+          left: 50%;
+          width: 75px !important;
+        }
+        .orgchart .hierarchy:not(.couple) > .node:has(+ .nodes)::after {
+          height: 13px;
+        }
+        .orgchart .node .content .dob {
+            min-height: 1.2em; /* Ensure it takes up space even when empty */
+            display: block;    /* Ensure it behaves as a block within the content flow */
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+    </style>
+    <style id="growshrink" type="text/css">
+        li.hierarchy:not(:has(ul.nodes)) i.bottomEdge { /* No downwards extension if no children */
+            display: none;
+        }
+        .orgchart > ul > li > .node > i.topEdge { /* No upwards extension for root node */
+            display: none;
+        }
+        li.hierarchy:only-child > .node > i.horizontalEdge { /* No horizontal extension if no siblings */
+            display: none;
+        }
 
-    /* Style the actual dialog box */
-    .modal-content {
-        background-color: #fff;
-        padding: 2rem;
+        .orgchart .edge::before {
+            border-color: rgba(255, 255, 255, 0.9);
+            color: #ffffff;
+        }
+        .orgchart .verticalEdge::before {
+            border-color: #ffffff transparent transparent transparent;
+        }
+        .orgchart .verticalEdge.topEdge::before {
+            border-color: transparent transparent #ffffff transparent;
+        }
+        .orgchart .horizontalEdge::before {
+            border-color: transparent transparent transparent #ffffff;
+        }
+        .orgchart .horizontalEdge.leftEdge::before {
+            border-color: transparent #ffffff transparent transparent;
+        }
+    </style>
+    <style id="nonchart" type="text/css">
+      .message {
+        position: fixed;      /* Float over content */
+        top: 33%;            /* Position at the top */
+        left: 50%;            /* Center horizontally */
+        transform: translateX(-50%); 
+        padding: 15px 25px;
         border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        z-index: 1000;        /* Ensure it's above the chart */
+        display: none;        /* Hidden by default */
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        min-width: 300px;
         text-align: center;
-        min-width: 350px;
-    }
+        font-family: sans-serif;
+      }
+      .message.success {
+        background: #c8e6c9;
+        color: #1b5e20;
+        border: 1px solid #2e7d32;
+        display: block;       /* Shows when class is added */
+      }
+      .message.error {
+        background: #ffcdd2;
+        color: #b71c1c;
+        border: 1px solid #c62828;
+        display: block;
+      }
+      .message.info {
+        background: #bbdefb;
+        color: #0d47a1;
+        border: 1px solid #1565c0;
+        display: block;
+      }
 
-    .modal-actions {
-        margin-top: 20px;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
+      /* Ensure the overlay covers the full screen and centers content */
+      #read-link.modal-overlay,
+      #fileModal.modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100vw;
+          height: 100vh;
+          background-color: rgba(0, 0, 0, 0.5); /* Dim the background */
+          display: none;    /* Controlled by JS .css('display', 'flex') */
+          justify-content: center;
+          align-items: center;
+          z-index: 2000;    /* Higher than edit-panel */
+      }
 
-    #edit-panel {
-      display: inline-flex;
-      position: fixed;
-      bottom: 10px;
-      background-color: #fff;
-      border: 1px solid black;
-    }
-    #edit-panel div {
-      display: inline-block;
-      border: 1px solid #bd8989;
-    }
-    #edit-panel ul {
-      list-style-type: none;
-      margin-top: 0;
-      margin-block-start: auto;
-      padding: 5px;
-    }
-    #edit-panel.edit-parent-node #selected-node-details { display: none; }
-    #edit-panel.edit-parent-node #btn-relative-delete,
-    #edit-panel.edit-parent-node #btn-relative-reset { display: none; }
-    #edit-panel .btn-inputs { display: none; }
-    #edit-panel.show-child-btns:not(.edit-parent-node) .btn-inputs { display: inline-block; }
-    #edit-panel #new-relative-dob { width: 10ch; }
-    .details { padding: 5px; }
-    #controls div { display: block; margin-bottom: 5px; }
-    #controls button { width: 80px; }
-    /* Styling for the link icon in the node */
-    .orgchart .node .link-icon {
-        position: absolute;
-        bottom: 2px;
-        right: 2px;
-        width: 16px;
-        height: 16px;
-        border: 1.5px solid #333;
-        border-radius: 50%;
-        background-color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-decoration: none;
-        color: #333;
-        font-weight: bold;
-        font-size: 10px;
-        line-height: 1;
-        z-index: 5;
-    }
+      /* Style the actual dialog box */
+      .modal-content {
+          background-color: #fff;
+          padding: 2rem;
+          border-radius: 8px;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+          text-align: center;
+          min-width: 350px;
+      }
 
-    .orgchart .node .link-icon:hover {
-        background-color: #007bff;
-        color: white;
-        border-color: #007bff;
-    }
+      .modal-actions {
+          margin-top: 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+      }
 
-    /* Style for the link input row in the edit panel */
-    #selected-link {
-        width: 100%;
-    }
+      #edit-panel {
+        display: inline-flex;
+        position: fixed;
+        bottom: 10px;
+        background-color: #fff;
+        border: 1px solid black;
+      }
+      #edit-panel div {
+        display: inline-block;
+        border: 1px solid #bd8989;
+      }
+      #edit-panel ul {
+        list-style-type: none;
+        margin-top: 0;
+        margin-block-start: auto;
+        padding: 5px;
+      }
+      #edit-panel.edit-parent-node #selected-node-details { display: none; }
+      #edit-panel.edit-parent-node #btn-relative-delete,
+      #edit-panel.edit-parent-node #btn-relative-reset { display: none; }
+      #edit-panel .btn-inputs { display: none; }
+      #edit-panel.show-child-btns:not(.edit-parent-node) .btn-inputs { display: inline-block; }
+      #edit-panel #new-relative-dob { width: 10ch; }
+      .details { padding: 5px; }
+      #controls div { display: block; margin-bottom: 5px; }
+      #controls button { width: 80px; }
+      #selected-node-details button { width: 60px; }
+      #selected-node-details input { width: 100%; }
+      #selected-node-details .pop-up-menu {
+          position: absolute;
+          bottom: 35px;
+          right: 88ch;
+          background-color: white;
+          border: 1px solid #333;
+          border-radius: 4px;
+          display: none;
+          flex-direction: column;
+          z-index: 10;
+      }
+      .pop-up-menu div {
+          padding: 4px 12px;
+          cursor: pointer;
+      }
+      .pop-up-menu div:hover {
+          background-color: #a0a0a0;
+      }
 
-    .node.matched .content {
-        background-color: #007bff; /* A nice professional blue */
-        color: white;              /* Makes text readable against blue */
-    }
-    .primary-btn { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
-    .secondary-btn { background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
-  </style>
+      .orgchart .node .link-icon {
+          position: absolute;
+          bottom: -5px;
+          right: 2px;
+          width: 16px;
+          height: 16px;
+          border: 1.5px solid #333;
+          border-radius: 50%;
+          background-color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          text-decoration: none;
+          color: #333;
+          font-weight: bold;
+          font-size: 10px;
+          line-height: 1;
+          z-index: 5;
+      }
+      .orgchart .node .link-icon:hover {
+          background-color: #007bff;
+          color: white;
+          border-color: #007bff;
+      }
+
+      #selected-link {
+          width: 100%;
+      }
+      .node.matched .content { /* Highlight matched nodes during search */
+          background-color: #007bff;
+          color: white;
+      }
+      .primary-btn { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+      .secondary-btn { background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+    </style>
 </head>
 <body>
-  <!-- Family Tree Chart -->
-  <div id="chart-container"></div>
-  <div id="message" class="message"></div>
-
-  <div id="edit-panel" class="show-child-btns">
-    <div id="chart-mode">
-      <ul>
-        <li><input type="radio" name="panelmode" id="view" value="view"><label for="view">View</label></li>
-        <li><input type="radio" name="panelmode" id="edit" value="edit" checked><label for="edit">Edit</label></li>
-      </ul>
-    </div>
-    <div id="selected-node-details" class="details">
-      <table><tbody>
-        <tr>
-          <td><label for="name">Name: </label></td>
-          <td><input id="selected-name" type="text" placeholder="Select a family member"></td>
-        </tr>
-        <tr>
-          <td><label for="selected-relationship">Relation: </label></td>
-          <td><input id="selected-relationship" type="text" placeholder="Relationship of family member"></td>
-        </tr>
-        <tr>
-          <td><label for="selected-dob">DOB: </label></td>
-          <td><input id="selected-dob" type="text" placeholder="Date of birth"></td>
-        </tr>
-      </tbody></table>
-      <input id="selected-link" style="display: none;">
-      <button id="btn-update-member" title="Change the name or relationship of this member">Update</button>
-      <button id="btn-search-member" title="Search for a match to this information">Search</button>
-      <button id="btn-add-link" title="Attach a hyperlink to another chart">Link</button>
-    </div>
-    <div class="details" style="width: max-content;">
-      <div style="border: 0;  display: block;">
-        <input type="radio" id="parent" name="relationship" value="parent"><label for="parent">Topmost</label>
-        <input type="radio" id="child" name="relationship" value="child" checked><label for="child">Child(ren)</label>
-        <input type="radio" id="spouse" name="relationship" value="spouse"><label for="spouse">Spouse</label>
-      </div>
-      <div style="width: fit-content;">
-        <span id="relationship-label" style="float:inline-start; padding: 5px;">Child(ren):</span>
-        <ul id="new-relativelist" style="display: inline-block;">
-          <li class="new-relative">
-            <input id="new-relative-name" placeholder="Name of new relative">
-            <input id="new-relative-relationship" placeholder="Relationship">
-            <input id="new-relative-dob" placeholder="Date of birth">
-          </li>
+    <!-- Family Tree Chart -->
+    <div id="chart-container"></div>
+    <div id="message" class="message"></div>
+    <!-- Edit Panel -->
+    <div id="edit-panel" class="show-child-btns">
+      <div id="chart-mode">
+        <ul>
+          <li><input type="radio" name="panelmode" id="view" value="view"><label for="view">View</label></li>
+          <li><input type="radio" name="panelmode" id="edit" value="edit" checked><label for="edit">Edit</label></li>
         </ul>
-        <button id="btn-add-relative" class="btn-inputs" title="Add row for another child">+</button>
-        <button id="btn-remove-relative" class="btn-inputs" style="margin-right: 5px;" title="Remove this child row">-</button>
+      </div>
+      <div id="selected-node-details" class="details">
+        <table><tbody>
+          <tr>
+            <td><label for="name">Name: </label></td>
+            <td><input id="selected-name" type="text" placeholder="Select a family member"></td>
+          </tr>
+          <tr>
+            <td><label for="selected-relation">Relation: </label></td>
+            <td><input id="selected-relation" type="text" placeholder="Relationship of family member"></td>
+          </tr>
+          <tr>
+            <td><label for="selected-dob">DOB: </label></td>
+            <td><input id="selected-dob" type="text" placeholder="Date of birth"></td>
+          </tr>
+        </tbody></table>
+        <input id="selected-link" style="display: none;">
+        <button id="btn-update-member" title="Change the name or relation of this member">Update</button>
+        <button id="btn-search-member" title="Search for a match to this information">Search</button>
+        <button id="btn-add-link" title="Attach a hyperlink to another chart">Link</button>
+        <div id="extra-functions">
+          <div class="pop-up-menu">
+            <div id="export-family">Export Subfamily</div>
+            <div id="flip-insider">Flip Insider</div>
+            <div id="outsider-flip" style="display: none;">Flip Position</div>
+          </div>
+          <button id="btn-menu" title="Open menu">☰</button>
+        </div>
+      </div>
+      <div class="details" style="width: max-content;">
+        <div style="border: 0;  display: block;">
+          <input type="radio" id="parent" name="relation" value="parent"><label for="parent">Topmost</label>
+          <input type="radio" id="child" name="relation" value="child" checked><label for="child">Child(ren)</label>
+          <input type="radio" id="spouse" name="relation" value="spouse"><label for="spouse">Spouse</label>
+        </div>
+        <div style="width: fit-content;">
+          <span id="relation-label" style="float:inline-start; padding: 5px;">Child(ren):</span>
+          <ul id="new-relativelist" style="display: inline-block;">
+            <li class="new-relative">
+              <input id="new-relative-name" placeholder="Name of new relative">
+              <input id="new-relative-relation" placeholder="Relationship">
+              <input id="new-relative-dob" placeholder="Date of birth">
+            </li>
+          </ul>
+          <button id="btn-add-relative" class="btn-inputs" title="Add row for another child">+</button>
+          <button id="btn-remove-relative" class="btn-inputs" style="margin-right: 5px;" title="Remove this child row">-</button>
+        </div>
+      </div>
+      <div id="controls" class="details">
+        <div style="border: none;">
+          <button id="btn-family-save" class="parent child spouse" title="Add a family member">Add</button>
+          <button id="btn-export-json" title="Save tree as JSON file">Export</button>                
+        </div>
+        <div>
+          <button id="btn-relative-delete" class="child spouse" title="Remove a family member">Delete</button>
+          <button id="btn-import-json" title="Import a previosly saved JSON file">Import</button>
+        </div>
+        <div>
+          <button id="btn-relative-reset" class="child spouse" title="Clear all selected and entered data">Reset</button>
+          <button id="btn-export-png" title="Export the tree as an image">Image</button>
+        </div>
+        <div>
+          <button id="btn-export-html" title="Save as standalone HTML">HTML</button>
+        </div>
       </div>
     </div>
-    <div id="controls" class="details">
-      <div style="border: none;">
-        <button id="btn-relative-add" class="parent child spouse" title="Add a family member">Add</button>
-        <button id="btn-export-png" title="Save tree as JSON file">Export</button>                
-      </div>
-      <div>
-        <button id="btn-relative-delete" class="child spouse" title="Remove a family member">Delete</button>
-        <button id="btn-import-json" title="Import a previosly saved JSON file">Import</button>
-      </div>
-      <div>
-        <button id="btn-relative-reset" class="child spouse" title="Clear all selected and entered data">Reset</button>
-        <button id="btn-export-png" title="Export the tree as an image">Image</button>
+    <div id="fileModal" class="modal-overlay" style="display: none;">
+      <div class="modal-content">
+        <p>Select a .json file to replace the current tree.</p>        
+        <div class="modal-actions">
+          <input type="file" id="treeFileInput" accept=".json">
+          <button id="btn-select-files" class="primary-btn">Select File</button>
+          <button id="btn-cancel" class="secondary-btn">Cancel</button>
+        </div>
       </div>
     </div>
-  </div>
-  <div id="fileModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content">
-      <p>Select a .json file to replace the current tree.</p>        
-      <div class="modal-actions">
-        <input type="file" id="treeFileInput" accept=".json">
-        <button id="btn-select-files" class="primary-btn">Select File</button>
-        <button id="btn-cancel" class="secondary-btn">Cancel</button>
+    <div id="read-link" class="modal-overlay" style="display: none;">
+      <div class="modal-content">
+        <p>Link</p>
+        <input id="link" type="text" placeholder="Enter link address">
+        <button id="btn-save-link" class="primary-btn">Save</button>
+        <button id="btn-cancel-link" class="secondary-btn">Cancel</button>
       </div>
     </div>
-  </div>
-  <div id="read-link" class="modal-overlay" style="display: none;">
-    <div class="modal-content">
-      <p>Link</p>
-      <input id="link" type="text" placeholder="Enter link address">
-      <button id="btn-save-link" class="primary-btn">Save</button>
-      <button id="btn-cancel-link" class="secondary-btn">Cancel</button>
-    </div>
-  </div>
 
-  <script type="text/javascript" src="js/jquery.min.js"></script>
-  <script type="text/javascript" src="js/html2canvas.min.js"></script>
-  <script type="text/javascript" src="js/jquery.orgchart.js"></script>
-  <script type="text/javascript">
-  $(function() {
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/html2canvas.min.js"></script>
+    <script type="text/javascript" src=" "></script>
+    <script type="text/javascript">
+    $(function() {
 
-    const STORAGE_KEY = 'familyTreeData';
+        const STORAGE_KEY = 'familyTreeData';
 
-    // Save the current tree object/array to localStorage
-    function saveFamilyTree(data) {
-      try {
-        const serializedData = JSON.stringify(data);
-        localStorage.setItem(STORAGE_KEY, serializedData);
-      } catch (e) {
-        console.error("Failed to save to localStorage:", e);
-      }
-    }
-
-    function normalizeStoredData() {
-      try {
-        const raw = localStorage.getItem('familyTreeData');
-        if (!raw) return false;
-        const parsed = JSON.parse(raw);
-
-        // If parsed is a flat array of members (not nested), wrap it
-        if (Array.isArray(parsed) && parsed.length > 0 && !Array.isArray(parsed[0])) {
-          const normalized = [parsed];
-          localStorage.setItem('familyTreeData', JSON.stringify(normalized));
-          return true;
-        }
-
-        // Already nested or empty
-        return false;
-      } catch (e) {
-        console.error('Normalization failed', e);
-        return false;
-      }
-    }
-
-    // Retrieve and normalize the data on startup
-    function loadFamilyTree() {
-      // First, run your normalization to ensure data consistency
-      normalizeStoredData(); 
-
-      const rawData = localStorage.getItem(STORAGE_KEY);
-      if (!rawData) {
-        return []; // Or return a default starting node
-      }
-
-      try {
-        return JSON.parse(rawData);
-      } catch (e) {
-        console.error("Corrupted data in localStorage:", e);
-        return [];
-      }
-    }
-
-    function showMessage(message, type = 'info') {
-      const msgEl = document.getElementById('message');
-      msgEl.textContent = message;
-      msgEl.className = `message ${type}`;
-      setTimeout(() => {
-        msgEl.className = 'message';
-      }, 3000);
-    }
-
-    function updateFamilyTree(data) {
-      $('#chart-container .orgchart').remove();
-      return $('#chart-container').orgchart({
-        'data' : data,
-        'createNode': createNode,
-        'nodeTemplate': nodeTemplate,
-        'nodeID': 'id',
-        'pan': true,
-        'zoom': true,
-        'zoominLimit': 4,
-        'zoomoutLimit': 0.35
-      });
-    }
-
-    datasource = loadFamilyTree();
-
-    var nodeTemplate = function(data) {
-      const linkHtml = data.link ? 
-        `<a href="${data.link}" target="_blank" class="link-icon" title="View Related Tree">&gt;</a>` : '';
-      return `<div class="title">${data.name}</div>
-        <div class="content">
-          <div class="relationship">${data.relationship}&nbsp;</div>
-          <div class="dob">${data.dob}&nbsp;</div>
-          ${linkHtml}
-        </div>`;
-    }
-
-    var createNode = function($node, data) {
-      $node.on('click', function(event) {
-        if (!$(event.target).is('.edge, .toggleBtn')) {
-          var $this = $(this);
-          var $chart = $this.closest('.orgchart');
-          var newX = window.parseInt(($chart.outerWidth(true)/2) - ($this.offset().left - $chart.offset().left) - ($this.outerWidth(true)/2));
-          var newY = window.parseInt(($chart.outerHeight(true)/2) - ($this.offset().top - $chart.offset().top) - ($this.outerHeight(true)/2));
-          $chart.css('transform', 'matrix(1, 0, 0, 1, ' + newX + ', ' + newY + ')');
-        }
-      });
-      if (data.className) {
-        $node.addClass(data.className);
-      }
-      if (data.outsider) {
-        $node.addClass('outsider');
-      }
-      if (data.link) {
-        $node.addClass('link');
-      }
-    };
-
-    var getId = function() {
-      return (new Date().getTime()) * 1000 + Math.floor(Math.random() * 1001);
-    };
-
-    var oc = updateFamilyTree(datasource)
-
-    oc.$chartContainer.on('click', '.node', function() { // Set selected node value to the input field when click a node
-      var $this = $(this);
-      $('#selected-name').val($this.find('.title').text()).data('node', $this);
-      $('#selected-relationship').val($this.find('.relationship').text());
-      $('#selected-dob').val($this.find('.dob').text());
-      $('#selected-link').val($this.find('a.link-icon').attr('href'));
-      $this.addClass('focused').siblings('.node').removeClass('focused');
-    });
-
-    oc.$chartContainer.on('click', '.orgchart', function(event) { // Unset the selected node when click on the blank area of chart
-      if (!$(event.target).closest('.node').length) {
-        $('#selected-name').val('');
-        $('#selected-relationship').val('');
-        $('#selected-dob').val('');
-        $('#selected-link').val('');
-      }
-      clearFilterResult();
-    });
-
-    function clearFilterResult() {
-      $('.orgchart').removeClass('noncollapsable')
-        .find('.node').removeClass('matched retained')
-        .end().find('.hidden, .isChildrenCollapsed, .first-shown, .last-shown').removeClass('hidden isChildrenCollapsed first-shown last-shown')
-        .end().find('.slide-up, .slide-left, .slide-right').removeClass('slide-up slide-right slide-left');
-    }
-
-    function loopChart ($hierarchy) {
-      var $siblings = $hierarchy.children('.nodes').children('.hierarchy');
-      if ($siblings.length) {
-        $siblings.filter(':not(.hidden)').first().addClass('first-shown')
-          .end().last().addClass('last-shown');
-      }
-      $siblings.each(function(index, sibling) {
-        loopChart($(sibling));
-      });
-    }
-
-    function getFamilyTree(li) { // Fet whose tree as JSON
-      var familyUnit = []; // This will hold the couple (e.g., [Rajeshwar, Uma])
-      var $li = $(li);
-
-      // 1. Process the individual person nodes within this LI
-      $li.find('> .node').each(function() {
-          var $node = $(this);
-          var person = {
-              'id': this.id,
-              'name': $node.find('.title').text().trim(),
-              'relationship': $node.find('.relationship').text().trim(),
-              'dob': $node.find('.dob').text().trim()
-          };
-
-          if ($node.hasClass('link')) {
-              var link = $node.find('a.link-icon').attr('href');
-              if(link.length > 0)
-                  person.link = link;
+        // Save the current tree object/array to localStorage
+        function saveFamilyTree(data) {
+          try {
+            const serializedData = JSON.stringify(data);
+            localStorage.setItem(STORAGE_KEY, serializedData);
+          } catch (e) {
+            console.error("Failed to save to localStorage:", e);
           }
-          if ($node.hasClass('outsider')) {
-              person.outsider = true;
-          } else {
-              // Only search for children under the non-outsider member
-              var $childUl = $li.children('ul.nodes');
-              if ($childUl.length) {
-                  person.children = [];
-                  $childUl.children('li').each(function() {
-                      // Push the result of the child li (which is an array) into the children array
-                      person.children.push(getFamilyTree(this));
-                  });
+        }
+
+        function normalizeStoredData() {
+          try {
+            const raw = localStorage.getItem('familyTreeData');
+            if (!raw) return false;
+            const parsed = JSON.parse(raw);
+
+            // If parsed is a flat array of members (not nested), wrap it
+            if (Array.isArray(parsed) && parsed.length > 0 && !Array.isArray(parsed[0])) {
+              const normalized = [parsed];
+              localStorage.setItem('familyTreeData', JSON.stringify(normalized));
+              return true;
+            }
+
+            // Already nested or empty
+            return false;
+          } catch (e) {
+            console.error('Normalization failed', e);
+            return false;
+          }
+        }
+
+        // Retrieve and normalize the data on startup
+        function loadFamilyTree() {
+          // First, run your normalization to ensure data consistency
+          normalizeStoredData(); 
+
+          const rawData = localStorage.getItem(STORAGE_KEY);
+          if (!rawData) {
+            return []; // Or return a default starting node
+          }
+
+          try {
+            return JSON.parse(rawData);
+          } catch (e) {
+            console.error("Corrupted data in localStorage:", e);
+            return [];
+          }
+        }
+
+        function showMessage(message, type = 'info') {
+          const msgEl = document.getElementById('message');
+          msgEl.textContent = message;
+          msgEl.className = `message ${type}`;
+          setTimeout(() => {
+            msgEl.className = 'message';
+          }, 3000);
+        }
+
+        function updateFamilyTree(data) {
+          $('#chart-container .orgchart').remove();
+          return $('#chart-container').orgchart({
+            'data' : data,
+            'createNode': createNode,
+            'nodeTemplate': nodeTemplate,
+            'nodeID': 'id',
+            'pan': true,
+            'toggle-node': true,
+            'zoom': true,
+            'zoominLimit': 4,
+            'zoomoutLimit': 0.35
+          });
+        }
+
+        datasource = loadFamilyTree();
+
+        var nodeTemplate = function(data) {
+            const linkHtml = data.link ? 
+                `<a href="${data.link}" target="_blank" class="link-icon" title="View Related Tree">&gt;</a>` : '';
+            return `<div class="title">${data.name}</div>
+                <div class="content">
+                    <div class="relation">${data.relation}&nbsp;</div>
+                    <div class="dob">${data.dob}&nbsp;</div>
+                    ${linkHtml}
+                </div>
+                <i class="edge horizontalEdge leftEdge oci"></i>
+                <i class="edge horizontalEdge rightEdge oci"></i>
+                <i class="edge verticalEdge topEdge oci"></i>
+                <i class="edge verticalEdge bottomEdge oci"></i>`;
+        }
+
+        var createNode = function($node, data) { // Moves the selected node to the center
+          $node.on('click', function(event) {
+            if (!$(event.target).is('.edge, .toggleBtn')) {
+              var $this = $(this);
+              var $chart = $this.closest('.orgchart');
+              var newX = window.parseInt(($chart.outerWidth(true)/2) - ($this.offset().left - $chart.offset().left) - ($this.outerWidth(true)/2));
+              var newY = window.parseInt(($chart.outerHeight(true)/2) - ($this.offset().top - $chart.offset().top) - ($this.outerHeight(true)/2));
+              $chart.css('transform', 'matrix(1, 0, 0, 1, ' + newX + ', ' + newY + ')');
+            }
+          });
+          if (data.className) {
+            $node.addClass(data.className);
+          }
+          if (data.outsider) {
+            $node.addClass('outsider');
+          }
+          if (data.link) {
+            $node.addClass('link');
+          }
+        };
+
+        var getId = function() {
+          return (new Date().getTime()) * 1000 + Math.floor(Math.random() * 1001);
+        };
+
+        var oc = updateFamilyTree(datasource)
+
+        oc.$chartContainer.on('click', '.edge', function(e) { // Set selected node value to the input field when click a node
+            var $this = $(this);
+            if ($this.hasClass('topEdge')) {
+                // hide siblings and ancestors
+                console.log('hide siblings and ancestors');
+            }
+            if ($this.hasClass('bottomEdge')) { // Hide children and decendants
+                // hide decendants
+                console.log('hide siblings and ancestors');
+            }
+            if ($this.hasClass('leftEdge') || $this.hasClass('rightEdge')) { // Hide or show siblings
+                var $li = $this.closest('li');
+                var $siblings = $li.siblings();
+                var $leftEdge = $li.find('.leftEdge');
+                var $rightEdge = $li.find('.rightEdge');
+
+                // Unhide spouses when expanding siblings
+                if (($this.hasClass('leftEdge') && $this.hasClass('oci-chevron-left')
+                    || $this.hasClass('rightEdge') && $this.hasClass('oci-chevron-right'))) {
+                    $siblings.show().find('.node.outsider').css({
+                        'opacity': '1',
+                        'transform': 'translateY(0)'
+                    });
+                }
+            }
+            e.stopPropagation();
+        });
+
+        oc.$chartContainer.on('click', '.node', function(e) { // Set selected node value to the input field when click a node
+            var $this = $(this);
+            $('#selected-name').val($this.find('.title').text()).data('node', $this);
+            $('#selected-relation').val($this.find('.relation').text());
+            $('#selected-dob').val($this.find('.dob').text());
+            $('#selected-link').val($this.find('a.link-icon').attr('href'));
+            $('.focussed').removeClass('focussed');
+            if ($this.hasClass('outsider')) {
+                $('#outsider-flip').show();
+            } else {
+                $('#outsider-flip').hide();
+            }
+            $this.addClass('focused');
+            e.stopPropagation();
+        });
+
+        oc.$chartContainer.on('click', '.orgchart', function(event) { // Unset the selected node when click on the blank area of chart
+          if (!$(event.target).closest('.node').length) {
+            $('#selected-name').val('');
+            $('#selected-relation').val('');
+            $('#selected-dob').val('');
+            $('#selected-link').val('');
+          }
+          clearFilterResult();
+        });
+
+        function clearFilterResult() {
+          $('.orgchart').removeClass('noncollapsable')
+            .find('.node').removeClass('matched retained')
+            .end().find('.hidden, .isChildrenCollapsed, .first-shown, .last-shown').removeClass('hidden isChildrenCollapsed first-shown last-shown')
+            .end().find('.slide-up, .slide-left, .slide-right').removeClass('slide-up slide-right slide-left');
+        }
+
+        function loopChart ($hierarchy) {
+          var $siblings = $hierarchy.children('.nodes').children('.hierarchy');
+          if ($siblings.length) {
+            $siblings.filter(':not(.hidden)').first().addClass('first-shown')
+              .end().last().addClass('last-shown');
+          }
+          $siblings.each(function(index, sibling) {
+            loopChart($(sibling));
+          });
+        }
+
+        function getFamilyTree(li) { // Fet whose tree as JSON
+          var familyUnit = []; // This will hold the couple (e.g., [Rajeshwar, Uma])
+          var $li = $(li);
+          // 1. Process the individual person nodes within this LI
+          $li.find('> .node').each(function() {
+              var $node = $(this);
+              var person = {
+                  'id': this.id,
+                  'name': $node.find('.title').text().trim(),
+                  'relation': $node.find('.relation').text().trim(),
+                  'dob': $node.find('.dob').text().trim()
+              };
+
+              if ($node.hasClass('link')) {
+                  var link = $node.find('a.link-icon').attr('href');
+                  if(link.length > 0)
+                      person.link = link;
               }
-          }
-          familyUnit.push(person);
-      });
+              if ($node.hasClass('outsider')) {
+                  person.outsider = true;
+              } else {
+                  // Only search for children under the non-outsider member
+                  var $childUl = $li.children('ul.nodes');
+                  if ($childUl.length) {
+                      person.children = [];
+                      $childUl.children('li').each(function() {
+                          // Push the result of the child li (which is an array) into the children array
+                          person.children.push(getFamilyTree(this));
+                      });
+                  }
+              }
+              familyUnit.push(person);
+          });
 
-      return familyUnit;
-    }
+          return familyUnit;
+        }
 
-    // View / Edit Entire Family Tree
-    $('input[name="panelmode"]').on('change', function() {
-      var isView = this.value === 'view';
-      $('.orgchart').toggleClass('edit-state', !isView);
-      if (isView) {
-        $('#edit-panel .details').css('display', 'none');
-      } else {
-        $('#edit-panel .details').css('display', 'inline-block');
-      }
-    });
+        // View / Edit Entire Family Tree
+        $('input[name="panelmode"]').on('change', function() {
+            var isView = this.value === 'view';
+            $('.orgchart').toggleClass('edit-state', !isView);
+            if (isView) {
+                $('#edit-panel .details').css('display', 'none');
+            } else {
+                $('#edit-panel .details').css('display', 'inline-block');
+            }
+        });
 
-    $('#btn-update-member').on('click', function() { // Updates data os the selected node
-      var $node = $('#selected-name').data('node');
-      if (!$node) {
-        alert('Please select person to edit');
-        return;
-      }
-      var newName = $('#selected-name').val().trim();
-      var newRelationship = $('#selected-relationship').val().trim();
-      var newDOB = $('#selected-dob').val().trim();
-      var newLink = $('#selected-link').val().trim();
-      $node.find('.title').text(newName);
-      $node.find('.relationship').text(newRelationship);
-      $node.find('.dob').html(newDOB.trim() || '&nbsp;');
-      if(newLink.length > 0) { // newLink might have existed, created or have been modified
-          // Create the hyperlink image if needed
-          content = $node.find('.content');
-          if(content.find('a').length == 0) { // Create a link, if added
-              const link = document.createElement('a');
-              link.classList.add('link', 'link-icon');
-              link.target = "_blank";
-              link.href = newLink;
-              link.title = "View Related Tree";
-              link.textContent = ">";
-              $(content).append(link);
+        $('#btn-update-member').on('click', function() { // Updates data of the selected node
+            var $node = $('#selected-name').data('node');
+            if (!$node) {
+                alert('Please select person to edit');
+                return;
+            }
+            var newName = $('#selected-name').val().trim();
+            var newRelationship = $('#selected-relation').val().trim();
+            var newDOB = $('#selected-dob').val().trim();
+            var newLink = $('#selected-link').val().trim();
+            $node.find('.title').text(newName);
+            $node.find('.relation').text(newRelationship);
+            $node.find('.dob').html(newDOB.trim() || '&nbsp;');
+            if(newLink.length > 0) { // newLink might have existed, created or have been modified
+                // Create the hyperlink image if needed
+                content = $node.find('.content');
+                if(content.find('a').length == 0) { // Create a link, if added
+                    const link = document.createElement('a');
+                    link.classList.add('link', 'link-icon');
+                    link.target = "_blank";
+                    link.href = newLink;
+                    link.title = "View Related Tree";
+                    link.textContent = ">";
+                    $(content).append(link);
+                }
+                else {
+                    const link = content.find('a');
+                    link.href = newLink;
+                }
+                $node.find('a.link-icon').attr('href', newLink);
+            }
+            else {
+                // TODO: Remove link if old link was there
+                $node.find('.content a.link-icon').remove();
+                $node.removeClass('link');
+            }
+            saveFamilyTree([getFamilyTree($('.orgchart > .nodes > li'))]);
+        });
+
+        $('#btn-search-member').on('click', function() {
+          $chart = $('.orgchart');
+          if($('#selected-name').val().trim() === '' && $('#selected-relation').val().trim() === '' && $('#selected-dob').val().trim() === '') {
+            console.log('No search criteria entered');
           }
           else {
-              const link = content.find('a');
-              link.href = newLink;
-          }
-          $node.find('a.link-icon').attr('href', newLink);
-      }
-      else {
-          // TODO: Remove link if old link was there
-          $node.find('.content a.link-icon').remove();
-          $node.removeClass('link');
-      }
-      saveFamilyTree([getFamilyTree($('.orgchart > .nodes > li'))]);
-    });
-
-    $('#btn-search-member').on('click', function() {
-      $chart = $('.orgchart');
-      if($('#selected-name').val().trim() === '' && $('#selected-relationship').val().trim() === '' && $('#selected-dob').val().trim() === '') {
-        console.log('No search criteria entered');
-      }
-      else {
-        $chart.find('.node').filter(function(index, node) {
-          var selectedName = $('#selected-name').val().toLowerCase();
-          var selectedRelationship = $('#selected-relationship').val().toLowerCase();
-          var selectedDob = $('#selected-dob').val().toLowerCase();
-          var nodeName = $(node).find('.title').text().toLowerCase();
-          var nodeRelationship = $(node).find('.relationship').text().toLowerCase();
-          var nodeDob = $(node).find('.dob').text().toLowerCase();
-          return (selectedName.length == 0 || nodeName.indexOf(selectedName) > -1)
-          && (selectedRelationship.length == 0 || nodeRelationship.indexOf(selectedRelationship) > -1)
-          && (selectedDob.length == 0 || nodeDob.indexOf(selectedDob) > -1);
-        }).addClass('matched')
-        .closest('.hierarchy').parents('.hierarchy').children('.node').addClass('retained');
-        $chart.find('.matched,.retained').each(function(index, node) {
-          $(node).removeClass('slide-up')
-            .closest('.nodes').removeClass('hidden')
-            .siblings('.hierarchy').removeClass('isChildrenCollapsed');
-          var $unmatched = $(node).closest('.hierarchy').siblings().find('.node:first:not(.matched,.retained)')
-            .closest('.hierarchy').addClass('hidden');
-        });
-        $chart.find('.matched').each(function(index, node) {
-          if (!$(node).siblings('.nodes').find('.matched').length) {
-            $(node).siblings('.nodes').addClass('hidden')
-              .parent().addClass('isChildrenCollapsed');
+            $chart.find('.node').filter(function(index, node) {
+              var selectedName = $('#selected-name').val().toLowerCase();
+              var selectedRelationship = $('#selected-relation').val().toLowerCase();
+              var selectedDob = $('#selected-dob').val().toLowerCase();
+              var nodeName = $(node).find('.title').text().toLowerCase();
+              var nodeRelationship = $(node).find('.relation').text().toLowerCase();
+              var nodeDob = $(node).find('.dob').text().toLowerCase();
+              return (selectedName.length == 0 || nodeName.indexOf(selectedName) > -1)
+              && (selectedRelationship.length == 0 || nodeRelationship.indexOf(selectedRelationship) > -1)
+              && (selectedDob.length == 0 || nodeDob.indexOf(selectedDob) > -1);
+            }).addClass('matched')
+            .closest('.hierarchy').parents('.hierarchy').children('.node').addClass('retained');
+            $chart.find('.matched,.retained').each(function(index, node) {
+              $(node).removeClass('slide-up')
+                .closest('.nodes').removeClass('hidden')
+                .siblings('.hierarchy').removeClass('isChildrenCollapsed');
+              var $unmatched = $(node).closest('.hierarchy').siblings().find('.node:first:not(.matched,.retained)')
+                .closest('.hierarchy').addClass('hidden');
+            });
+            $chart.find('.matched').each(function(index, node) {
+              if (!$(node).siblings('.nodes').find('.matched').length) {
+                $(node).siblings('.nodes').addClass('hidden')
+                  .parent().addClass('isChildrenCollapsed');
+              }
+            });
+            // loop chart and adjust lines
+            loopChart($chart.find('.hierarchy:first'));
           }
         });
-        // loop chart and adjust lines
-        loopChart($chart.find('.hierarchy:first'));
-      }
-    });
 
-    $('#btn-add-link').on('click', function() {
-      var $node = $('#selected-name').data('node');
-      if(!$node) {
-        alert('Select person for link entry');
-        return;
-      }
-      $('input#link').val($('#selected-link').val());
-      $('#read-link').css('display', 'flex')
-    })
-
-    $('input[name="relationship"]').on('click', function() { // Selecting editor mode Topmost/Child/Spouse
-      var $this = $(this);
-      var val = $this.val();
-      var label = $("label[for='" + $this.attr('id') + "']").text();
-      $('#relationship-label').text(label + ' :');
-      $('#edit-panel').toggleClass('show-child-btns', val === 'child');
-      $('#edit-panel').toggleClass('is-topmost', val === 'parent');
-      if (val === 'parent') {
-        $('#edit-panel').addClass('edit-parent-node');
-      } else {
-        $('#edit-panel').removeClass('edit-parent-node');
-      }
-      $('#new-relativelist').children(':gt(0)').remove();
-    });
-
-    $('#btn-add-relative').on('click', function() { // Add row to input new relative name and relationship
-      $('#new-relativelist').append(`<li class="new-relative">
-        <input id="new-relative-name" type="text" placeholder="Name of new relative">
-        <input id="new-relative-relationship" type="text" placeholder="Relationship">
-        <input id="new-relative-dob" type="text" placeholder="Date of birth">
-        </li>`);
-    });
-
-    $('#btn-remove-relative').on('click', function() { // Add row to remove new relative name and relationship row
-      var inputs = $('#new-relativelist').children('li');
-      if (inputs.length > 1) {
-        inputs.last().remove();
-      }
-    });
-
-    $('#btn-relative-add').on('click', function() {  // Add newly enteret family member to the chart
-      var $chartContainer = $('#chart-container');
-      var relatives = [];
-      $('#new-relativelist').find('.new-relative').each(function(index, item) {
-        var name = $(item).find('#new-relative-name').val();
-        var relationship = $(item).find('#new-relative-relationship').val();
-        var dob = $(item).find('#new-relative-dob').val();
-        if (name.trim().length || relationship.trim().length) {
-          relatives.push([name.trim(), relationship.trim(), dob.trim()]);
-        }
-      });
-      var $node = $('#selected-name').data('node'); // Name of selected node
-      if (!relatives.length) {
-        alert(`Add child(ren) in list, for ${ $('#selected-name').val() || 'the selected person'} first`);
-        return;
-      }
-      var nodeType = $('input[name="relationship"]:checked'); // Redundant check: defaulted to child already
-      if (!nodeType.length) {
-        alert('Please select if adding top most parent, children or spouse');
-        return;
-      }
-      if (nodeType.val() !== 'parent' && !$('.orgchart').length) { // Children or spouse node need at least first parent node
-        alert('Please select a family member before adding children or spouse');
-        return;
-      }
-      if (nodeType.val() !== 'parent' && !$node) { // A node should be selected, except when adding the first parent node 
-        alert(`Please select ${nodeType.val() === 'spouse' ? 'spouse' : 'parent' } in family`);
-        return;
-      }
-      if (nodeType.val() === 'parent') { // Topmost parent option was selected
-        if (!$chartContainer.children('.orgchart').length
-          || !$chartContainer.children('.orgchart').children('.node').length) { // if the chart is empty, create first parent node
-          oc = updateFamilyTree([[{ 'name': relatives[0][0], 'relationship': relatives[0][1], 'dob': relatives[0][2], 'id': getId() }]]);
-        } else { // Chart had a family, add under the new root node
-          oc.addParent($chartContainer.find('.node:first'), {
-            'id': getId(),
-            'name': relatives[0][0],
-            'relationship': relatives[0][1],
-            'dob': relatives[0][2]
-          });
-        }
-      } else if (nodeType.val() === 'spouse') { // Radio button spouse was selected
-        if ($node.id === oc.$chart.find('.node:first').attr('id')) {
-          alert('You must first create and select a family member');
-          return;
-        }
-        var spouse = relatives.map(function (item) {
-            return { 'name': relatives[0][0], 'relationship': relatives[0][1], 'dob': relatives[0][2], 'outsider': true, 'id': getId() };
+        $('#btn-add-link').on('click', function() {
+          var $node = $('#selected-name').data('node');
+          if(!$node) {
+            alert('Select person for link entry');
+            return;
           }
-        );
-        var li = $node.parent();
-        li.addClass('spouse couple');
-        var newSpouseHtml = `<div id="${spouse[0].id}" class="node outsider">`
-          + nodeTemplate(spouse[0])
-          + '</div>';
-        $node.after(newSpouseHtml);
-      } else { // (multiple) children option was selected
-        if (!$node.siblings('.nodes').length) { // if no children yet
-          $node.parent('li').append('<ul class="nodes"></ul>');
-          ul = $node.siblings('ul.nodes');
-          relatives.forEach(relative => {
-            ul.append('<li class="hierarchy"></li>');
-            li = ul.find('li:last-child()');
-            newSpouseHtml = `<div id="${getId()}" class="node">`
-              + nodeTemplate({ 'name': relative[0], 'relationship': relative[1], 'dob': relative[2] })
-              + '</div>';
-            li.append(newSpouseHtml);
-          });
-        } else { // not first child, add siblings instead
-          var ul = $node.parent().children('ul.nodes');
-          relatives.forEach(relative => {
-            ul.append('<li class="hierarchy"></li>');
-            li = ul.find('li:last-child()');
-            newSpouseHtml = `<div id="${getId()}" class="node">`
-              + nodeTemplate({ 'name': relative[0], 'relationship': relative[1], 'dob': relative[2] })
-              + '</div>';
-            li.append(newSpouseHtml);
-          });
-        }
-      }
-      saveFamilyTree([getFamilyTree($('.orgchart > .nodes > li'))]);
-      $('#new-relativelist').find('input:first').val('').parent().siblings().remove();
-      $('#new-relative-relationship').val('');
-      $('#new-relative-dob').val('');
-    });
+          $('input#link').val($('#selected-link').val());
+          $('#read-link').css('display', 'flex')
+        })
 
-    $('#btn-relative-delete').on('click', function() {
-      var $node = $('#selected-name').data('node');
-      if (!$node) {
-        alert('Please select person to delete');
-        return;
-      } else if (!$node.hasClass('outsider') && $node[0] === $('.orgchart').find('.node:first')[0]) {
-        if (!window.confirm('Are you sure you want to delete the whole tree?')) {
-          return;
-        }
-      }
-      if (!window.confirm(`Are you sure you want to delete ${ $('#selected-name').val() || 'the selected person'} ?`)) {
-        return;
-      }
-      $('#selected-name').val('').data('node', null);
-      $('#selected-relationship').val('');
-      if($node.hasClass('outsider')) {
-        $node.parent('li').removeClass('couple spouse');
-        $node.parent().find('> div.outsider').remove();
-        return;
-      }
-      oc.removeNodes($node);
-      saveFamilyTree([getFamilyTree($('.orgchart > .nodes > li'))]);
-    });
+        let menuTimer;
 
-    $('#btn-relative-reset').on('click', function() {
-      $('.orgchart').find('.focused').removeClass('focused');
-      $('#selected-name').val('');
-      $('#selected-relationship').val('');
-      $('#selected-dob').val('');
-      $('#new-relativelist').find('input:first').val('').parent().siblings().remove();
-      $('#new-relative-relationship').val('')
-    });
+        // Group both the button and the menu in the selector
+        $('#btn-menu, .pop-up-menu').on('mouseleave', function() {
+            // Start the countdown
+            menuTimer = setTimeout(function() {
+                $('.pop-up-menu').fadeOut(200); // Or .hide()
+            }, 500);
+        });
 
-    $('#btn-export-png').on('click', function() {
-        const rootArray = getFamilyTree($('.orgchart > .nodes > li'));
-        const finalData = [rootArray];
-        const mainMember = rootArray.find(m => !m.outsider) || rootArray[0];
-        const rootName = mainMember ? mainMember.name.replace(/\s+/g, '_') : 'FamilyTree';
-        const fileName = `${rootName}_Family_Tree.json`;
-        const jsonString = JSON.stringify(finalData, null, 2);
-        const blob = new Blob([jsonString], { type: 'application/json' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(link.href);
-        saveFamilyTree(finalData);
-        showMessage(`File saved as: ${fileName}`, 'success');
-    });
+        $('#btn-menu, .pop-up-menu').on('mouseenter', function() {
+            // If the mouse enters again, stop the countdown!
+            clearTimeout(menuTimer);
+            
+            // Ensure the menu stays visible (especially if it was mid-fade)
+            $('.pop-up-menu').stop(true, true).show();
+            $('.pop-up-menu').css('display', 'flex');
+        });
 
-    $('#btn-import-json').on('click', function() {
-      $('#fileModal').css('display', 'flex');
-    });
+        $('#export-family').on('click', function() {
+            $('.pop-up-menu').toggle();
+            var $node = $('#selected-name').data('node');
+            if(!$node) {
+              alert('Select person to export their family tree');
+              return;
+            }
+            var familyTree = [ getFamilyTree($node.closest('li')) ];
+            var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(familyTree));
+            var downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", ($node.find('.title').text().trim() || 'family_tree') + ".json");
+            document.body.appendChild(downloadAnchorNode); // required for firefox
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        });
 
-    $('#btn-cancel').on('click', function() {
-        $('#fileModal').css('display', 'none');
-        $('#treeFileInput').value(''); // Reset input      
-    })
+        $('#flip-insider').on('click', function() {
+            $('.pop-up-menu').toggle();
+            var $node = $('#selected-name').data('node');
+            if(!$node) {
+                alert('Select person to flip insider/outsider status');
+                return;
+            }
+            $node.closest('li.hierarchy').find('> div').toggleClass('outsider');
+            saveFamilyTree([getFamilyTree($('.orgchart > .nodes > li'))]);
+        });
 
-    $('#btn-save-link').on('click', function() {
-        var $link = $('input#link').val().trim();
-        $('#selected-link').val($link);
-        $('#selected-name').data('node').addClass('link');
-        $('#btn-update-member').click();
-        $('input#link').val('');
-        $('#read-link').css('display', 'none');
-    })
+        $('#outsider-flip').on('click', function() {
+            $('.pop-up-menu').toggle();
+            var $node = $('#selected-name').data('node');
+            if(!$node) {
+                alert('Select person to flip position');
+                return;
+            }
+            var $li = $node.closest('li.hierarchy');
+            if($li.hasClass('couple')) {
+              var $first = $li.find('> div').first();
+              var $last  = $li.find('> div').last();
+              $first.insertAfter($last);
+            }
+            saveFamilyTree([getFamilyTree($('.orgchart > .nodes > li'))]);
+        });
 
-    $('#btn-cancel-link').on('click', function() {
-        $('input#link').val('');
-        $('#read-link').css('display', 'none');
-    })
+        $('input[name="relation"]').on('click', function() { // Selecting editor mode Topmost/Child/Spouse
+          var $this = $(this);
+          var val = $this.val();
+          var label = $("label[for='" + $this.attr('id') + "']").text();
+          $('#relation-label').text(label + ' :');
+          $('#edit-panel').toggleClass('show-child-btns', val === 'child');
+          $('#edit-panel').toggleClass('is-topmost', val === 'parent');
+          if (val === 'parent') {
+            $('#edit-panel').addClass('edit-parent-node');
+          } else {
+            $('#edit-panel').removeClass('edit-parent-node');
+          }
+          $('#new-relativelist').children(':gt(0)').remove();
+        });
 
-    $('btn-select-files').on('click', function() { $('#treeFileInput').click(); })
+        $('#btn-add-relative').on('click', function() { // Add row to input new relative name and relation
+          $('#new-relativelist').append(`<li class="new-relative">
+            <input id="new-relative-name" type="text" placeholder="Name of new relative">
+            <input id="new-relative-relation" type="text" placeholder="Relationship">
+            <input id="new-relative-dob" type="text" placeholder="Date of birth">
+            </li>`);
+        });
 
-    $('#treeFileInput').on('change', function(e) {
-        // Access the file from the underlying DOM element
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                try {
-                    const newTreeData = JSON.parse(event.target.result);
-                    // Use a jQuery function or a global one to update your tree
-                    oc.removeNodes($('.orgchart').find('.node:first'));
-                    updateFamilyTree(newTreeData);
-                    // Hide the modal using jQuery's fade effect
-                    $('#fileModal').fadeOut();
-                    // Clear the input so the same file can be uploaded twice if needed
-                    $(e.target).val(''); 
-                    saveFamilyTree([getFamilyTree($('.orgchart > .nodes > li'))]);
-                } catch (err) {
-                    alert("Error parsing JSON. Please check the file structure.");
+        $('#btn-remove-relative').on('click', function() { // Add row to remove new relative name and relation row
+          var inputs = $('#new-relativelist').children('li');
+          if (inputs.length > 1) {
+            inputs.last().remove();
+          }
+        });
+
+        $('#btn-family-save').on('click', function() {  // Add newly enteret family member to the chart
+            var $chartContainer = $('#chart-container');
+            var relatives = [];
+            var $node = $('#selected-name').data('node'); // Name of selected node
+            var nodeType = $('input[name="relation"]:checked'); // Redundant check: defaulted to child already
+            $('#new-relativelist').find('.new-relative').each(function(index, item) {
+                var name = $(item).find('#new-relative-name').val();
+                var relation = $(item).find('#new-relative-relation').val();
+                var dob = $(item).find('#new-relative-dob').val();
+                if (name.trim().length || relation.trim().length) {
+                    relatives.push([name.trim(), relation.trim(), dob.trim()]);
                 }
-            };
-            reader.readAsText(file);
-        }
-    });
+            });
+            if (!relatives.length) {
+                alert(`Add the ${ nodeType.val() === 'parent' ? 'name of the first member'
+                  : nodeType.val() === 'spouse' ? 'name of spouse' : 'name(s) of child(ren)' } first`);
+                return;
+            }
+            if (nodeType.val() !== 'parent' && !$('.orgchart').length) { // Children or spouse node need at least first parent node
+                alert('Please select a family member before adding children or spouse');
+                return;
+            }
+            if (nodeType.val() !== 'parent' && !$node) { // A node should be selected, except when adding the first parent node 
+                alert(`Please select ${nodeType.val() === 'spouse' ? 'spouse' : 'parent' } in family`);
+                return;
+            }
+            if (nodeType.val() === 'parent') { // Topmost parent option was selected
+                if (!$chartContainer.children('.orgchart').length
+                    || !$chartContainer.children('.orgchart').find('.node').length) { // if the chart is empty, create first parent node
+                    oc = updateFamilyTree([[{ 'name': relatives[0][0], 'relation': relatives[0][1], 'dob': relatives[0][2], 'id': getId() }]]);
+                }
+                else { // Chart had a family, add under the new root node
+                    oc.addParent($chartContainer.find('.node:first'), {
+                        'id': getId(),
+                        'name': relatives[0][0],
+                        'relation': relatives[0][1],
+                        'dob': relatives[0][2]
+                    });
+                }
+            }
+            else { // Spouse or child option was selected
+                if (nodeType.val() === 'spouse') { // Radio button spouse was selected
+                    if ($node.id === oc.$chart.find('.node:first').attr('id')) {
+                        alert('You must first create and select a family member');
+                        return;
+                    }
+                    var spouse = relatives.map(function (item) {
+                        return { 'name': relatives[0][0], 'relation': relatives[0][1], 'dob': relatives[0][2], 'outsider': true, 'id': getId() };
+                      }
+                    );
+                    var li = $node.parent();
+                    li.addClass('spouse couple');
+                    var newSpouseHtml = `<div id="${spouse[0].id}" class="node outsider">`
+                        + nodeTemplate(spouse[0])
+                        + '</div>';
+                    $node.after(newSpouseHtml);
+                }
+                else { // (multiple) children option was selected
+                    if (!$node.siblings('.nodes').length) { // if no children yet
+                        $node.parent('li').append('<ul class="nodes"></ul>');
+                        ul = $node.siblings('ul.nodes');
+                        relatives.forEach(relative => {
+                            ul.append('<li class="hierarchy"></li>');
+                            li = ul.find('li:last-child()');
+                            newSpouseHtml = `<div id="${getId()}" class="node">`
+                                + nodeTemplate({ 'name': relative[0], 'relation': relative[1], 'dob': relative[2] })
+                                + '</div>';
+                            li.append(newSpouseHtml);
+                        });
+                    }
+                    else { // not first child, add siblings instead
+                        var ul = $node.parent().children('ul.nodes');
+                        relatives.forEach(relative => {
+                            ul.append('<li class="hierarchy"></li>');
+                            li = ul.find('li:last-child()');
+                            newSpouseHtml = `<div id="${getId()}" class="node">`
+                                + nodeTemplate({ 'name': relative[0], 'relation': relative[1], 'dob': relative[2] })
+                                + '</div>';
+                            li.append(newSpouseHtml);
+                        });
+                    }
+                }
+            }
+            saveFamilyTree([getFamilyTree($('.orgchart > .nodes > li'))]);
+            $('#new-relativelist').find('input:first').val('').parent().siblings().remove();
+            $('#new-relative-relation').val('');
+            $('#new-relative-dob').val('');
+        });
 
-    $('#btn-export-png').on('click', function() {
-        html2canvas(document.querySelector("#chart-container")).then(canvas => {
+        $('#btn-relative-delete').on('click', function() {
+          var $node = $('#selected-name').data('node');
+          if (!$node) {
+            alert('Please select person to delete');
+            return;
+          } else if (!$node.hasClass('outsider') && $node[0] === $('.orgchart').find('.node:first')[0]) {
+            if (!window.confirm('Are you sure you want to delete the whole tree?')) {
+              return;
+            }
+          }
+          if (!window.confirm(`Are you sure you want to delete ${ $('#selected-name').val() || 'the selected person'} ?`)) {
+            return;
+          }
+          $('#selected-name').val('').data('node', null);
+          $('#selected-relation').val('');
+          $('#selected-dob').val('');
+          if($node.hasClass('outsider')) {
+            $node.parent('li').removeClass('couple spouse');
+            $node.parent().find('> div.outsider').remove();
+            return;
+          }
+          oc.removeNodes($node);
+          saveFamilyTree([getFamilyTree($('.orgchart > .nodes > li'))]);
+        });
+
+        $('#btn-relative-reset').on('click', function() {
+          $('.orgchart').find('.focused').removeClass('focused');
+          $('#selected-name').val('');
+          $('#selected-relation').val('');
+          $('#selected-dob').val('');
+          $('#new-relativelist').find('input:first').val('').parent().siblings().remove();
+          $('#new-relative-relation').val('')
+        });
+
+        $('#btn-export-json').on('click', function() {
             const rootArray = getFamilyTree($('.orgchart > .nodes > li'));
+            const finalData = [rootArray];
             const mainMember = rootArray.find(m => !m.outsider) || rootArray[0];
             const rootName = mainMember ? mainMember.name.replace(/\s+/g, '_') : 'FamilyTree';
-            const fileName = `${rootName}_Family_Tree.png`;
+            const fileName = `${rootName}_Family_Tree.json`;
+            const jsonString = JSON.stringify(finalData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
             const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
             link.download = fileName;
-            link.href = canvas.toDataURL();
+            document.body.appendChild(link);
             link.click();
-            showMessage(`File saved as ${fileName}`);
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+            saveFamilyTree(finalData);
+            showMessage(`File saved as: ${fileName}`, 'success');
         });
+
+        $('#btn-import-json').on('click', function() {
+          $('#fileModal').css('display', 'flex');
+        });
+
+        $('#btn-cancel').on('click', function() {
+            $('#fileModal').css('display', 'none');
+            $('#treeFileInput').value(''); // Reset input      
+        })
+
+        $('#btn-save-link').on('click', function() {
+            var $link = $('input#link').val().trim();
+            $('#selected-link').val($link);
+            $('#selected-name').data('node').addClass('link');
+            $('#btn-update-member').click();
+            $('input#link').val('');
+            $('#read-link').css('display', 'none');
+        })
+
+        $('#btn-cancel-link').on('click', function() {
+            $('input#link').val('');
+            $('#read-link').css('display', 'none');
+        })
+
+        $('btn-select-files').on('click', function() { $('#treeFileInput').click(); })
+
+        $('#treeFileInput').on('change', function(e) {
+            // Access the file from the underlying DOM element
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const newTreeData = JSON.parse(event.target.result);
+                        // Use a jQuery function or a global one to update your tree
+                        oc.removeNodes($('.orgchart').find('.node:first'));
+                        updateFamilyTree(newTreeData);
+                        // Hide the modal using jQuery's fade effect
+                        $('#fileModal').fadeOut();
+                        // Clear the input so the same file can be uploaded twice if needed
+                        $(e.target).val(''); 
+                        saveFamilyTree([getFamilyTree($('.orgchart > .nodes > li'))]);
+                    } catch (err) {
+                        alert("Error parsing JSON. Please check the file structure.");
+                    }
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        $('#btn-export-png').on('click', function() {
+            html2canvas(document.querySelector("#chart-container")).then(canvas => {
+                const rootArray = getFamilyTree($('.orgchart > .nodes > li'));
+                const mainMember = rootArray.find(m => !m.outsider) || rootArray[0];
+                const rootName = mainMember ? mainMember.name.replace(/\s+/g, '_') : 'FamilyTree';
+                const fileName = `${rootName}_Family_Tree.png`;
+                const link = document.createElement('a');
+                link.download = fileName;
+                link.href = canvas.toDataURL();
+                link.click();
+                showMessage(`File saved as ${fileName}`);
+            });
+        });
+
+        $('#btn-export-html').on('click', function() {
+            // 1. Get the data and the style content separately
+            const currentData = JSON.stringify([getFamilyTree($('.orgchart > .nodes > li'))]);
+            const chartStyles = $('style').first().html(); // Extract styles first
+            const nodeTemplate = `
+            var nodeTemplate = function(data) {
+              const linkHtml = data.link ? 
+                \`<a href="\${data.link}" target="_blank" class="link-icon" title="View Related Tree">&gt;</a>\` : '';
+              return \`<div class="title">\${data.name}<\/div>
+                <div class="content">
+                  <div class="relation">\${data.relation}&nbsp;<\/div>
+                  <div class="dob">\${data.dob}&nbsp;<\/div>
+                  \${linkHtml}
+                <\/div>\`;
+            }`;
+            const htmlBlobContent = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Family Tree Export</title>
+        <link rel="stylesheet" href="css/jquery.orgchart.css">
+        <link rel="stylesheet" href="css/style.css">
+        <style>${chartStyles}<\/style> 
+    </head>
+    <body>
+        <div id="chart-container"><\/div>
+        <script src="js/jquery.min.js"><\/script>
+        <script src="js/jquery.orgchart.js"><\/script>
+        <script>
+            $(function() {
+                ${nodeTemplate}
+                // We use JSON.parse here to ensure the data is handled as a clean object
+                const exportedData = ${currentData}; 
+                $('#chart-container').orgchart({
+                    'data' : exportedData,
+                    'nodeID': 'id',
+                    'nodeTemplate': nodeTemplate,
+                    'createNode': function($node, data) {
+                        if (data.outsider) $node.addClass('outsider');
+                    }
+                });
+            });
+        <\/script>
+    <\/body>
+    <\/html>`;
+        const blob = new Blob([htmlBlobContent], { type: 'text/html' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = "FamilyTree_Export.html";
+        link.click();
+        URL.revokeObjectURL(link.href); // Clean up memory
     });
 
-  });
+    });
 
-  </script>
-  </body>
+    </script>
+</body>
 </html>
