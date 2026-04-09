@@ -355,7 +355,7 @@
 
     <script type="text/javascript" src="js/jquery.min.js"></script>
     <script type="text/javascript" src="js/html2canvas.min.js"></script>
-    <script type="text/javascript" src=" "></script>
+    <script type="text/javascript" src="js/jquery.orgchart.js"></script>
     <script type="text/javascript">
     $(function() {
 
@@ -419,20 +419,9 @@
           }, 3000);
         }
 
-        function updateFamilyTree(data) {
-          $('#chart-container .orgchart').remove();
-          return $('#chart-container').orgchart({
-            'data' : data,
-            'createNode': createNode,
-            'nodeTemplate': nodeTemplate,
-            'nodeID': 'id',
-            'pan': true,
-            'toggle-node': true,
-            'zoom': true,
-            'zoominLimit': 4,
-            'zoomoutLimit': 0.35
-          });
-        }
+        var getId = function() {
+            return (new Date().getTime()) * 1000 + Math.floor(Math.random() * 1001);
+        };
 
         datasource = loadFamilyTree();
 
@@ -472,9 +461,20 @@
           }
         };
 
-        var getId = function() {
-          return (new Date().getTime()) * 1000 + Math.floor(Math.random() * 1001);
-        };
+        function updateFamilyTree(data) {
+            $('#chart-container .orgchart').remove();
+            return $('#chart-container').orgchart({
+                'data' : datasource,
+                'createNode': createNode,
+                'nodeTemplate': nodeTemplate,
+                'nodeID': 'id',
+                'pan': true,
+                'toggle-node': true,
+                'zoom': true,
+                'zoominLimit': 4,
+                'zoomoutLimit': 0.35
+            });
+        }
 
         var oc = updateFamilyTree(datasource)
 
