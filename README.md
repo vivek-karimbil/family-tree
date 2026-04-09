@@ -1,6 +1,6 @@
 # Family Tree Editor
 
-A web-based application for creating and editing JSON family tree data that can be used with OrgChart.js visualization.
+A single page application for creating and editing a family tree. This uses [OrgChart.js](https://github.com/dabeng/OrgChart) for tree visualization and editing. Work in progress i saved in bowser storage, while the charts can be exported and imported from local JSON files.
 
 ## Features
 
@@ -107,75 +107,20 @@ The family tree data is stored as a JSON array of member objects:
 ]
 ```
 
-### Field Descriptions
-
-- **id**: Unique identifier (auto-generated, but you can set custom ones)
-- **name**: Person's full name
-- **relationship**: Their relation/role in the family tree
-- **gender**: "male", "female", or "other"
-- **parentId** (optional): The ID of their parent
-- **outsider** (optional): Set to `true` if they married into the family
-
-## Using TreeWeb.js
-
-The `TreeWeb.js` file contains a `FamilyTreeManager` class for programmatically managing family tree data.
-
-### Example Usage
-
-```javascript
-// Create a manager
-const tree = new FamilyTreeManager();
-
-// Add members
-const grandpa = tree.addMember('George', 'Grandfather', 'male');
-const grandma = tree.addMember('Mary', 'Grandmother', 'female', null, false);
-const dad = tree.addMember('David', 'Father', 'male', '1');
-
-// Update a member
-tree.updateMember('1', { title: 'Great Grandfather' });
-
-// Get all members
-console.log(tree.getAll());
-
-// Export as JSON
-console.log(tree.toJSON());
-
-// Build OrgChart data
-const chartData = tree.buildOrgChartData();
-```
-
-### Available Methods
-
-- `addMember(name, title, gender, parentId, outsider)` - Add a member
-- `updateMember(id, updates)` - Update a member
-- `deleteMember(id)` - Delete a member
-- `getMember(id)` - Get member by ID
-- `getChildren(parentId)` - Get all children of a member
-- `getParent(memberId)` - Get parent of a member
-- `getAll()` - Get all members
-- `toJSON()` - Export as JSON string
-- `loadFromJSON(data)` - Load from JSON array
-- `buildOrgChartData()` - Build OrgChart compatible structure
-- `getStats()` - Get tree statistics
-- `clear()` - Clear all members
-
 ## Auto-Save Feature
 
-Your work is automatically saved to the browser's **Local Storage**. When you close and reopen `editor.html`, your data will still be there!
+Your work is automatically saved to the browser's **Local Storage**. When you close and reopen, your data will still be there! This is to safeguard your edits, bod export your tree periodically to have a backup of your work.
 
 > **Note**: Local Storage is specific to each browser and computer. To backup your data, regularly use the **Export JSON** feature.
 
-## Exporting for Use with Gollamudi Family.html
+## Exporting for Use
 
 If you want to use your created family tree with the existing HTML visualization:
 
 1. Edit your family tree in `editor.html`
 2. Click **"📥 Export JSON"** to download your `family-tree.json`
 3. Copy the JSON data from the JSON viewer
-4. Open `Gollamudi Family.html` in a text editor
-5. Find the `var datascource = [` line
-6. Replace the entire `datasource` array with your exported data
-7. Save and open the HTML file in a browser to see your family tree
+4. Open the saved JSON file in a text editor
 
 ## Tips & Tricks
 
@@ -219,11 +164,9 @@ The editor uses:
 
 ```
 FamilyTree/
-├── editor.html                 (Main editor app - Open this!)
-├── TreeWeb.js                  (Helper functions)
-├── Gollamudi Family.html       (Example visualization)
+├── README.md                   (This file)
+├── FamilyTreeEditor.html       (Helper functions)
 ├── data/                       (Data folder for storage)
-└── README.md                   (This file)
 ```
 
 ---
