@@ -16,7 +16,7 @@ A single page application for creating and editing a family tree. This uses [Org
 
 ### Open the Editor
 
-Simply open `[FamilyTreeEditor.html](FamilyTreeEditor.html)` in your web browser.
+Simply open [FamilyTreeEditor.html](FamilyTreeEditor.html) in your web browser.
 
 ## How to Use
 
