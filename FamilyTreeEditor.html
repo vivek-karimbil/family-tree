@@ -464,7 +464,7 @@
         function updateFamilyTree(data) {
             $('#chart-container .orgchart').remove();
             return $('#chart-container').orgchart({
-                'data' : datasource,
+                'data' : data,
                 'createNode': createNode,
                 'nodeTemplate': nodeTemplate,
                 'nodeID': 'id',
